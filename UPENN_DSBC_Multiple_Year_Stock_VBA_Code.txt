@@ -1,0 +1,162 @@
+Sub MultipleYearStock()
+    
+    'Declare Variables
+    Dim ws As Worksheet
+    Dim rowStart, rowEnd As Long
+    Dim colStart, colEnd As Long
+    Dim i As Long
+    Dim Ticker As String
+    Dim Ticker_Counter As Integer
+    Dim rowSummary As Integer
+    Dim Stock_Total As Double
+    Dim YrOpen, YrClose, YrChange As Double
+    Dim PercentChange As Double
+    Dim colPC, PC_Start, PC_End As Long
+    Dim GPI, GPD, GVI As Double
+    Dim GPIT, GPDT, GVIT As String
+    
+    'Turn Off Screen Updating
+    Application.ScreenUpdating = False
+    
+    'Start Looping Through Worksheets
+    For Each ws In Worksheets
+        
+        'Lable Headers for New Columns
+        ws.Range("I1").Value = "Ticker"
+        ws.Range("J1").Value = "Yearly Change"
+        ws.Range("K1").Value = "Percent Change"
+        ws.Range("L1").Value = "Total Stock Volume"
+        ws.Range("P1").Value = "Ticker"
+        ws.Range("Q1").Value = "Value"
+        ws.Range("O2").Value = "Greatest % Increase"
+        ws.Range("O3").Value = "Greatest % Decrease"
+        ws.Range("O4").Value = "Greatest Total Volume"
+        
+        'Defining Variables for Start and End Points in Select Rows and Columns Using Basic Code
+        rowStart = ws.Cells(2, 1).Row
+        rowEnd = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        colStart = ws.Cells(1, 1).Column
+        colEnd = ws.Cells(1, 7).Column
+        
+        rowSummary = 2
+        
+        Ticker_Counter = 0
+        
+        Stock_Total = 0
+        
+        'Starting Loop Through Rows
+        For i = rowStart To rowEnd
+                
+                'Start If Statement
+                If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+                    
+                    'Define Actions If Statement Is True
+                    'Define Ticker Value
+                    Ticker = ws.Cells(i, 1).Value
+                    
+                    'Calculating Stock Total
+                    Stock_Total = Stock_Total + ws.Cells(i, 7).Value
+                    
+                    'Define Cell for Ticker Value
+                    ws.Cells(rowSummary, 9).Value = Ticker
+                    
+                    'Identify Year Open Amount
+                    YrOpen = ws.Cells(i - Ticker_Counter, 3).Value
+                    
+                    'Identify Year Close Amount
+                    YrClose = ws.Cells(i, 6).Value
+                    
+                    'Calculate Year Change Amount
+                    YrChange = YrClose - YrOpen
+                    
+                    'Define Cell for Year Change Value
+                    ws.Cells(rowSummary, 10).Value = YrChange
+                    
+                    'If Statement for Conditional Cell Formating Red for Negative Value and Green for Positive Value
+                    If ws.Cells(rowSummary, 10).Value < 0 Then
+                        ws.Cells(rowSummary, 10).Interior.Color = vbRed
+                        
+                        Else
+                            ws.Cells(rowSummary, 10).Interior.Color = vbGreen
+                            
+                    End If
+                    
+                    'Calculating Percent Change
+                    PercentChange = YrChange / YrOpen
+                    
+                    'Defining Cells for Percent Change Value and Percentage Number Format
+                    ws.Cells(rowSummary, 11).Value = PercentChange
+                    ws.Cells(rowSummary, 11).NumberFormat = "0.00%"
+                    
+                    'Defining Cell for Stock Total Value
+                    ws.Cells(rowSummary, 12).Value = Stock_Total
+                    
+                    'Increase Row Summary Count by 1
+                    rowSummary = rowSummary + 1
+                    
+                    'Reset Ticker Counter to Start Count for New Ticker
+                    Ticker_Counter = 0
+                    
+                    'Reset Stock Total to Start Count for New Ticker
+                    Stock_Total = 0
+                    
+                    Else
+                        'Calculate Stock Total
+                        Stock_Total = Stock_Total + ws.Cells(i, 7).Value
+                        
+                        'Increase Ticker Counter By 1
+                        Ticker_Counter = Ticker_Counter + 1
+                
+                End If
+                
+        'Move to Next Row in the Loop
+        Next i
+        
+        'Define Variables for Row Start and End Using More Dynamic Code
+        colPC = ws.Cells.Find("Percent Change").Column
+        PC_Start = ws.Cells.Find("Percent Change").Offset(1, 0).Row
+        PC_End = ws.Cells(Rows.Count, colPC).End(xlUp).Row
+        
+        'Define Variable for Greatest Percent Increase Using Worksheet Function Max
+        GPI = ws.Application.WorksheetFunction.Max(ws.Range("K" & PC_Start, "K" & PC_End))
+        
+        'Defining Cell for Greatest Percent Increase Value and Percentage Number Format Using More Dynamic Code
+        ws.Cells(ws.Cells.Find("Value").Offset(1, 0).Row, ws.Cells.Find("Value").Column).Value = GPI
+        ws.Cells(ws.Cells.Find("Value").Offset(1, 0).Row, ws.Cells.Find("Value").Column).NumberFormat = "0.00%"
+        
+        'Define Variable for Greatest Percent Decrease Using Worksheet Function Min
+        GPD = ws.Application.WorksheetFunction.Min(ws.Range("K" & PC_Start, "K" & PC_End))
+        
+        'Defining Cell for Greatest Percent Decrease Value and Percentage Number Format Using More Dynamic Code
+        ws.Cells(ws.Cells.Find("Value").Offset(2, 0).Row, ws.Cells.Find("Value").Column).Value = GPD
+        ws.Cells(ws.Cells.Find("Value").Offset(2, 0).Row, ws.Cells.Find("Value").Column).NumberFormat = "0.00%"
+        
+        'Define Variable for Greatest Volume Increase Using Worksheet Function Max
+        GVI = ws.Application.WorksheetFunction.Max(ws.Range("L" & PC_Start, "L" & PC_End))
+        
+        'Defining Cell for Greatest Volume Increase Value and Percentage Number Format Using More Dynamic Code
+        ws.Cells(ws.Cells.Find("Value").Offset(3, 0).Row, ws.Cells.Find("Value").Column).Value = GVI
+        ws.Cells(ws.Cells.Find("Value").Offset(3, 0).Row, ws.Cells.Find("Value").Column).NumberFormat = "0"
+        
+        'Defining Variables for Tickers Associated with Greatest Percent Increase and Decrease and Greatest Volume Increase Using Worksheet Function XLookup with Dynamic Code
+        GPIT = ws.Application.WorksheetFunction.XLookup(ws.Range("Q2"), ws.Range("K" & PC_Start, "K" & PC_End), ws.Range("I" & PC_Start, "I" & PC_End))
+        GPDT = ws.Application.WorksheetFunction.XLookup(ws.Range("Q3"), ws.Range("K" & PC_Start, "K" & PC_End), ws.Range("I" & PC_Start, "I" & PC_End))
+        GVIT = ws.Application.WorksheetFunction.XLookup(ws.Range("Q4"), ws.Range("L" & PC_Start, "L" & PC_End), ws.Range("I" & PC_Start, "I" & PC_End))
+        
+        'Defining Cells for Ticker Values Associated with Greatest Percent Increase and Decrease and Greatest Volume Increase Using More Dynamic Code
+        ws.Cells(ws.Cells.Find("Value").Offset(1, 0).Row, ws.Cells.Find("Value").Offset(0, -1).Column).Value = GPIT
+        ws.Cells(ws.Cells.Find("Value").Offset(2, 0).Row, ws.Cells.Find("Value").Offset(0, -1).Column).Value = GPDT
+        ws.Cells(ws.Cells.Find("Value").Offset(3, 0).Row, ws.Cells.Find("Value").Offset(0, -1).Column).Value = GVIT
+        
+        'AutoFit Columns
+        ws.Range("I:L").EntireColumn.AutoFit
+        ws.Range("O:Q").EntireColumn.AutoFit
+        
+    'Next Worksheet in the Loop
+    Next ws
+    
+    'Turn On Screen Updating
+    Application.ScreenUpdating = True
+    
+    
+End Sub
